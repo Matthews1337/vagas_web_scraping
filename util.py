@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys  #-> biblioteca para poder dar "enter"
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 import chromedriver_autoinstaller
 
@@ -10,50 +11,69 @@ import datetime as dt
 import pandas as pd
 import sys
 import os
-
 from openpyxl import load_workbook
-diretorio = os.getcwd()
-
 from typing import Literal
 
 
-def criar_planilha(df, *, path='', salvar_como: Literal['CSV', 'EXCEL']= 'EXCEL', nm_sheet='Novo'):
-    data_windows = dt.datetime.now()
-    file_name = f"Vagas_do_dia_{data_windows.strftime('%d')}"
 
+diretorio = os.getcwd()
+pasta_planilhas = os.path.join(diretorio, 'planilhas')
+
+
+def criar_planilha(df=None, path=pasta_planilhas, salvar_como: Literal['CSV', 'EXCEL'] = 'EXCEL', nm_sheet='Novo'):
+    # Gerar nome do arquivo com base na data atual
+    data_atual = dt.datetime.now()
+    file_name = f"Vagas_do_dia_{data_atual.strftime('%d-%m-%Y')}"
+  
+    # Verificar se a pasta existe, e criá-la se não existir
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
     if salvar_como == 'CSV':
-        file_path = os.path.join(path, f"{file_name}.csv")
+        # Definir nome e caminho do arquivo CSV
+        file_name_csv = f"{file_name}.csv"
+        file_path = os.path.join(path, file_name_csv)
+        # Verificar se o arquivo já existe
         if os.path.exists(file_path):
-            print(f"O arquivo {file_name}.csv já existe.")
+            print(f"O arquivo {file_name_csv} já existe.")
         else:
-            df.to_csv(file_path, index=False)
+            df.to_csv(file_path, index=False, sep=';')
             print(f"Arquivo CSV criado em: {file_path}")
 
     elif salvar_como == 'EXCEL':
-        # file_path = os.path.join(path, f"{file_name}.xlsx")
-        file_path = f"{path}"  
+        # Definir nome e caminho do arquivo Excel
+        file_name_excel = f"{file_name}.xlsx"
+        file_path = os.path.join(path, file_name_excel)
+        # Verificar se o arquivo já existe
         if os.path.exists(file_path):
-            print(f"O arquivo {file_name}.xlsx já existe. Adicionando nova aba...")
-            add_sheet_planilha(df_=df, file_path=file_path, nm_sheet=nm_sheet)  # Função para adicionar uma nova sheet
+            print(f"O arquivo {file_name_excel} já existe. Adicionando nova aba...")
+            add_sheet_planilha(df_=df, file_path = path, nm_arquivo = file_name_excel ,nm_sheet=nm_sheet)  # Função para adicionar nova aba
         else:
-            df.to_excel(file_path, index=False)
+            df.to_excel(file_path, index=False, sheet_name=nm_sheet)
             print(f"Arquivo Excel criado em: {file_path}")
     else:
-        print('formato inválido!')
+        print('Formato inválido!')
 
 
 
-def add_sheet_planilha(df_, *, file_path='c:/Users/Matheus/Documents/PROGRAMACAO/PYTHON_ESTUDOS/web_scraping/vagas_jr', nm_arquivo='vagas_do_dia', nm_sheet='nerdin'):
-    # diretorio_planilhas = os.path.join(diretorio, "planilhas")
-    # diretorio_planilhas = os.path.join("Vagas_do_dia_12.xlsx")
-    # print(diretorio)
+def add_sheet_planilha(df_, *, file_path='pasta_planilhas', nm_arquivo='vagas_do_dia', nm_sheet='nerdin'):
     data_windows = dt.datetime.now()
-    nm_arquivo_dia = f'{nm_arquivo}_{data_windows.strftime("%d")}' 
-    complete_path = f'{file_path}/{nm_arquivo_dia}.xlsx'
-    with pd.ExcelWriter(complete_path, engine = 'openpyxl', mode='a', if_sheet_exists='replace') as writer:
+    nm_arquivo_dia = f'{nm_arquivo}_{data_windows.strftime("%d-%m-%Y")}'  # Date formatted correctly
     
-        df_.to_excel(writer, sheet_name= nm_sheet)
-        # writer.save()
+    # Ensure the directory exists
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    
+    # Create the full path with only one .xlsx extension
+    complete_path = os.path.join(file_path, nm_arquivo)
+    
+    print(f'Writing to: {complete_path}')  # Debugging output
+    
+    try:
+        with pd.ExcelWriter(complete_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            df_.to_excel(writer, sheet_name=nm_sheet)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
 
 
 
@@ -66,15 +86,19 @@ def open_new_window(driver):
 def get_vagas_indeed(pesquisar_por: str='Python jr', resumo = True, navegador = 'Edge')-> pd.DataFrame:
     
     chromedriver_autoinstaller.install()
+    # options = Options()
+    # options.add_argument("--headless")
+    # driver = webdriver.Chrome(executable_path = r'chromedriver.exe', options = options)
 
     if navegador.title() == 'Edge':
         navegador = webdriver.Edge()
-        
     elif navegador.title() == 'Chrome':
         navegador = webdriver.Chrome()
         
 
     navegador.get("https://br.indeed.com/")
+    navegador.delete_all_cookies()
+    # navegador.find_elements_by_xpath()
 
     time.sleep(1)
     navegador.find_element('xpath', '//*[@id="text-input-what"]').send_keys(pesquisar_por)
@@ -130,6 +154,8 @@ def get_vagas_indeed(pesquisar_por: str='Python jr', resumo = True, navegador = 
 
 def get_vagas_nerdin(pesquisar_por: str ='', resumo = True, navegador = 'Edge'):
     chromedriver_autoinstaller.install()
+    # options = Options()
+    # options.add_argument("--headless")
     if navegador.title() == 'Edge':
         navegador = webdriver.Edge()
     elif navegador.title() == 'Chrome':
