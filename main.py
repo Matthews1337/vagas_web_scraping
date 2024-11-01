@@ -1,7 +1,8 @@
 import util
 from util import pasta_planilhas
-from tkinter import *
-from tkinter.ttk import * # Temas para o tkinter
+# from tkinter import *
+# from tkinter.ttk import * # Temas para o tkinter
+import customtkinter
 
 ## para transformar em um .exe precisa instalar pyinstaller 
 ## digitar no cmd: pyinstaller --one nm_script.py
@@ -9,38 +10,41 @@ from tkinter.ttk import * # Temas para o tkinter
 
 if __name__ == '__main__':
 
-    janela = Tk()
+    janela = customtkinter.CTk()
     janela.title("Vagas V.0.1.1")
     # janela.geometry('400x600')
 
-    texto_orientacao = Label(janela, text="Escolha o site para pesquisar as vagas!")
+    texto_orientacao = customtkinter.CTkLabel(janela, text="Escolha o site para pesquisar as vagas!")
     texto_orientacao.grid(column=0, row=0)
 
-    texto_input = Text(janela, height=1, width=20)
+    # texto_input = customtkinter.CTkTextbox(janela, height=1, width=200, text="Tipo da vaga")
+    texto_input = customtkinter.CTkEntry(janela, height=28, width=200, placeholder_text="Tipo da vaga")
     texto_input.grid(column=0, row=1)
 
-    # def printInput(): 
-    #     inp = texto_input.get(1.0, "end-1c") 
-    #     lbl.config(text = "Pesquisar por: "+inp)
-    
+
     def search_indeed():
-        resultado = util.get_vagas_nerdin(pesquisar_por=texto_input.get(1.0, "end-1c"))
-        output.config(text = f"Quantidade de vagas Indeed: {resultado.shape[0]}")
-    
+        # Get the input text from the CTkEntry widget
+        search_term = texto_input.get()
+        resultado = util.get_vagas_nerdin(pesquisar_por=search_term)
+        output.configure(text=f"Quantidade de vagas Indeed: {resultado.shape[0]}")
+
     def search_nerdin():
-        resultado = util.get_vagas_nerdin(pesquisar_por=texto_input.get(1.0, "end-1c"))
-        output.config(text = f"Quantidade de vagas Nerdin: {resultado.shape[0]}")
+        # Get the input text from the CTkEntry widget
+        search_term = texto_input.get()
+        resultado = util.get_vagas_nerdin(pesquisar_por=search_term)
+        output.configure(text=f"Quantidade de vagas Nerdin: {resultado.shape[0]}")
+
+    # Creating buttons for Indeed and Nerdin searches
+    botao1 = customtkinter.CTkButton(janela, text='Indeed', command=search_indeed)
+    botao2 = customtkinter.CTkButton(janela, text='Nerdin', command=search_nerdin)
+    botao3 = customtkinter.CTkButton(janela, text='Sair', command=janela.quit)
+    output = customtkinter.CTkLabel(janela, text = "")
     
 
-    botao1 = Button(janela, text='Indeed', command=search_indeed)
-    botao2 = Button(janela, text='Nerdin', command=search_nerdin)
-    botao3 = Button(janela, text='Sair', command=janela.quit)
-    output = Label(janela, text = "") 
-
-    botao1.grid(column=0, row=2)
-    botao2.grid(column=0, row=3)
-    botao3.grid(column=0, row=4)
-    output.grid(column=0, row=5)
+    botao1.grid(column=0, row=2, padx=5, pady=5)
+    botao2.grid(column=0, row=3, padx=5, pady=5)
+    botao3.grid(column=0, row=4, padx=5, pady=5)
+    output.grid(column=0, row=5, padx=5, pady=5)
 
     janela.mainloop()
 
