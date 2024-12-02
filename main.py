@@ -25,14 +25,16 @@ if __name__ == '__main__':
     def search_indeed():
         # Get the input text from the CTkEntry widget
         search_term = texto_input.get()
-        resultado = util.get_vagas_nerdin(pesquisar_por=search_term)
+        resultado = util.get_vagas_indeed(pesquisar_por=search_term)
         output.configure(text=f"Quantidade de vagas Indeed: {resultado.shape[0]}")
+        util.criar_planilha(resultado,salvar_como='EXCEL',nm_sheet='Indeed')
 
     def search_nerdin():
         # Get the input text from the CTkEntry widget
         search_term = texto_input.get()
         resultado = util.get_vagas_nerdin(pesquisar_por=search_term)
         output.configure(text=f"Quantidade de vagas Nerdin: {resultado.shape[0]}")
+        util.criar_planilha(resultado,salvar_como='EXCEL',nm_sheet='Nerdin')
 
     # Creating buttons for Indeed and Nerdin searches
     botao1 = customtkinter.CTkButton(janela, text='Indeed', command=search_indeed)
